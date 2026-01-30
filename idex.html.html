@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimarket App</title>
+    <style>
+        /* 1. DISEÑO Y FONDO */
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; padding: 20px;
+            /* Aquí pones tu logo o imagen de fondo */
+            background-image: url('tu_logo.jpg'); 
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            background-color: #de9c6a; /* Color de respaldo */
+        }
+
+        header { 
+            text-align: center; padding: 20px; 
+            background: rgba(39, 174, 96, 0.9); 
+            color: #8e442d; border-radius: 10px; margin-bottom: 20px; 
+        }
+
+
+
+        /* 2. ESTRUCTURA */
+
+        .contenedor-principal {
+            display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; 
+            align-items: flex-start;
+        }
+
+        /* 3. CATÁLOGO */
+        .catalogo { 
+            flex: 3; display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 10px; 
+        }
+        
+        .producto-card { 
+            background: white; border-radius: 10px; padding: 30px; 
+            text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        .producto-card img { width: 100%; height: 200px; object-fit: cover; border-radius: 5px; }
+        
+        .btn-agregar { 
+            background: #27ae60; color: white; border: none; 
+            padding: 10px; border-radius: 5px; cursor: pointer; width: 100%;
+            font-weight: bold; margin-top: 10px;
+        }
+
+        /* 4. CARRITO */
+        .carrito-lateral {
+            flex: 1; min-width: 300px; background: white;
+            padding: 20px; border-radius: 10px; height: fit-content;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: sticky; top: 20px;
+        }
+
+        .item-carrito {
+            display: flex; justify-content: space-between;
+            border-bottom: 1px solid #eee; padding: 8px 0;
+        }
+
+        .btn-whatsapp {
+            background: #25d366; color: white; border: none;
+            padding: 15px; width: 100%; border-radius: 5px;
+            font-weight: bold; cursor: pointer; font-size: 1rem;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Comercializadora "NAROI"</h1>
+    <p>Calidad y frescura a tu alcance</p>
+</header>
+<div style="text-align: center; margin-bottom: 20px 0;">
+    <div style="position: relative; display: inline-block; width: 80%; max-width: 400px;">
+        <input type="text" id="buscador" onkeyup="buscarProducto()" placeholder="🔍 Buscar productos..." 
+            style="width: 100%; padding: 12px 20px; border-radius: 25px; border: 2px solid #27ae60; outline: none; font-size: 1rem;">
+    </div>
+</div>
+
+<div style="text-align: center; margin-bottom: 30px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;">
+    <button onclick="filtrarCategoria('Todos')" 
+        style="padding: 10px 20px; cursor: pointer; border-radius: 20px; border: none; background: #95a5a6; color: white; font-weight: bold;">
+        Todos
+    </button>
+
+    <button onclick="filtrarCategoria('Lácteos')" 
+        style="padding: 10px 20px; cursor: pointer; border-radius: 20px; border: none; background: #3498db; color: white; font-weight: bold;">
+        🥛 Lácteos
+    </button> 
+
+    <button onclick="filtrarCategoria('Abarrotes')" 
+        style="padding: 10px 20px; cursor: pointer; border-radius: 20px; border: none; background: #f1c40f; color: #333; font-weight: bold;">
+        📦 Abarrotes
+    </button>
+
+    <button onclick="filtrarCategoria('Limpieza')" 
+        style="padding: 10px 20px; cursor: pointer; border-radius: 20px; border: none; background: #9b59b6; color: white; font-weight: bold;">
+        🧼 Limpieza
+    </button>
+</div>
+
+
+<div class="contenedor-principal">
+<div style="flex: 3;">
+<div class="catalogo" id="lista-productos"></div>
+
+<div id="paginacion" style ="text-align:center; margin:20px 0; display:flex; justify-content: center;gap: 10px;
+width: 100%;"></div>  </div>
+
+<div class="carrito-lateral">
+        <h3>🛒 Tu Pedido</h3>
+        <div id="contenido-carrito">
+            <p style="color: gray;">El carrito está vacío</p>
+        </div> 
+      <hr>
+        <h3 style="text-align: center;">Total: $<span id="total-pago">0.00</span></h3>
+<button onclick="vaciarCarrito()" style="background: #e74c3c; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: bold;">
+    🗑️ Vaciar Carrito
+</button>
+         
+
+        <button class="btn-whatsapp" onclick="enviarPorWhatsApp()">
+            Enviar pedido a WhatsApp
+        </button>
+    </div>
+</div>
+</div>
+<script>
+
+    // --- BASE DE DATOS DE PRODUCTOS ---
+    const productos = [
+    { id: 1, nombre: "Leche Entera Colum 1Lt", precio: 1490, categoria: "Lácteos", img: "leche_entera_colum.jpg" },
+{ id: 2, nombre: "Leche descremada Colum 1Lt", precio: 1490, categoria: "Lácteos", img: "colum_descremada_natural.jpg" },
+{ id: 3, nombre: "Leche descremada sin lactosa Colum", precio: 1490, categoria: "Lácteos", img: "colum_decremada_sinlactosa.jpg" },
+{ id: 4, nombre: "Leche de soja Vivicosi 1Lt.", precio: 2490, categoria: "Lácteos", img: "vivicosi_soja.jpg" },
+{ id: 5, nombre: "Leche de coco Vivicosi 1Lt", precio: 2490, categoria: "Lácteos", img: "vivicosi_coco.jpg" },
+{ id: 6, nombre: "Leche de avena Vivicosi 1Lt", precio: 2490, categoria: "Lácteos", img: "vivicosi_avena.jpg" },
+{ id: 7, nombre: "Leche de almendra Vivicosi 1Lt", precio: 2490, categoria: "Lácteos", img: "vivicosi_almendra.jpg" },
+{ id: 8, nombre: "Leche de arroz Vivicosi 1Lt", precio: 2490, categoria: "Lácteos", img: "vivicosi_arroz.jpg" },
+{ id: 9, nombre: "Bebida de coco Tasty sabor chocolate 1Lt", precio: 1990, categoria: "Lácteos", img: "coco_tasty.jpg" },
+{ id: 10, nombre: "Bebida de almendra Tasty vainilla 1Lt", precio: 1990, categoria: "Lácteos", img: "almendra_tasty_vainilla.jpg" },
+{ id: 11, nombre: "Bebida de almendra Tasty Original 1Lt", precio: 1990, categoria: "Lácteos", img: "almendra_tasty_original.jpg" },
+{ id: 12, nombre: "Not Milk Original 1Lt", precio: 2290, categoria: "Lácteos", img: "not_milk_original.jpg" },
+{ id: 13, nombre: "Not Milk zero 1Lt", precio: 2290, categoria: "Lácteos", img: "not_milk_zero.jpg" },
+{ id: 14, nombre: "Not Milk low fat 1Lt", precio: 2290, categoria: "Lácteos", img: "not_milk_lowfat.jpg" },
+{ id: 15, nombre: "Not Milk Barista (avena) 1Lt ", precio: 2290, categoria: "Lácteos", img: "not_milk_barista.jpg" },
+{ id: 16, nombre: "Not Milk protein 750ml", precio: 1990, categoria: "Lácteos", img: "not_milk_protein.jpg" },
+{ id: 17, nombre: "Bebida de almendra V.co Original 1Lt", precio: 2390, categoria: "Lácteos", img: "almendra_vco.jpg" },
+{ id: 18, nombre: "Bebida de almendra V.co zero 1Lt", precio: 2390, categoria: "Lácteos", img: "almendra_zero_vco.jpg" },
+
+{ id: 19, nombre: "Aceite de maravilla 1Lt Natura", precio: 3390, categoria: "Abarrotes", img: "aceite_maravilla_1lt.jpg" },
+{ id: 20, nombre: "Aceite vegetal los silos 1Lt", precio: 1990, categoria: "Abarrotes", img: "aceite_vegetal_lossilos_990ml.jpg" },
+{ id: 21, nombre: "Pure de tomate de la huerta 532 gr", precio: 1500, categoria: "Abarrotes", img: "pure_huerta_530gr.jpg" },
+{ id: 22, nombre: "Lentejas iansa 500gr", precio: 1450, categoria: "Abarrotes", img: "lentejas_500gr.jpg" },
+{ id: 23, nombre: "Salsa de soya 500ml Traverso", precio: 2490, categoria: "Abarrotes", img: "soya_traverso_500ml.jpg" },
+{ id: 24, nombre: "Salsa de soya 250ml traverso", precio: 1250, categoria: "Abarrotes", img: "soya_traverso_250ml.jpg" },
+{ id: 25, nombre: "Sucedaneo de limon 500ml Traverso", precio: 1200, categoria: "Abarrotes", img: "sucedaneo_limon_500ml.jpg" },
+{ id: 26, nombre: "Vinagre de manzana 500ml Traverso", precio: 1200, categoria: "Abarrotes", img: "vinagre_manzana_traverso_500ml.jpg" },
+{ id: 27, nombre: "Vinagre de vino rosa 500ml Traverso", precio: 1200, categoria: "Abarrotes", img: "vinagre_vinorosa_traverso_500ml.jpg" },
+{ id: 28, nombre: "Vainilla 250ml La primera", precio: 1100, categoria: "Abarrotes", img: "vainilla_250ml.jpg" },
+    { id: 2, nombre: "Pan Molde", precio: 2.50, categoria: "Panadería", img: "https://via.placeholder.com/150?text=Pan" },
+
+    { id: 4, nombre: "Detergente", precio: 3.50, categoria: "Limpieza", img: "https://via.placeholder.com/150?text=Limpieza" }
+
+];
+
+
+let carrito = [];
+let paginaActual = 1;
+const productosPorPagina = 9;
+
+
+// 2. FUNCIÓN CARGAR CATÁLOGO (CON PAGINACIÓN)
+function cargarCatalogo(productosAMostrar = productos) {
+    const catalogo = document.getElementById('lista-productos');
+    if (!catalogo) return;
+    catalogo.innerHTML = ""; 
+
+    const inicio = (paginaActual - 1) * productosPorPagina;
+    const fin = inicio + productosPorPagina;
+    const productosSegmentados = productosAMostrar.slice(inicio, fin);
+
+    productosSegmentados.forEach(p => {
+        catalogo.innerHTML += `
+            <div class="producto-card">
+                <img src="${p.img}">
+                <small style="background:#eee; padding:2px 5px; border-radius:5px;">${p.categoria}</small>
+                <h3>${p.nombre}</h3>
+                <p style="color:#27ae60; font-weight:bold;">$${p.precio.toFixed(2)}</p>
+                <button class="btn-agregar" onclick="agregarAlCarrito(${p.id})">Agregar</button>
+            </div>
+        `;
+    });
+    crearBotonesPaginacion(productosAMostrar);
+}
+
+// 3. BOTONES DE PAGINACIÓN
+function crearBotonesPaginacion(listaTotal) {
+    const contenedorPaginas = document.getElementById('paginacion');
+    if (!contenedorPaginas) return;
+    contenedorPaginas.innerHTML = "";
+    const totalPaginas = Math.ceil(listaTotal.length / productosPorPagina);
+    if (totalPaginas <= 1) return;
+
+    for (let i = 1; i <= totalPaginas; i++) {
+        const boton = document.createElement('button');
+        boton.innerText = i;
+        boton.style.margin = "0 5px";
+        boton.style.padding = "8px 12px";
+        boton.style.background = (i === paginaActual) ? "#27ae60" : "white";
+        boton.style.color = (i === paginaActual) ? "white" : "#27ae60";
+        boton.onclick = function() {
+            paginaActual = i;
+            cargarCatalogo(listaTotal);
+            window.scrollTo(0, 0);
+        };
+        contenedorPaginas.appendChild(boton);
+    }
+}
+
+// 4. CARRITO: AGREGAR, DIBUJAR Y ELIMINAR
+function agregarAlCarrito(idBuscado) {
+    const producto = productos.find(p => p.id === idBuscado);
+    if (producto) {
+        carrito.push(producto);
+        actualizarDibujoCarrito();
+    }
+}
+
+function actualizarDibujoCarrito() {
+    const cajaCarrito = document.getElementById('contenido-carrito');
+    const totalTexto = document.getElementById('total-pago');
+    if (!cajaCarrito || !totalTexto) return;
+
+    if (carrito.length === 0) {
+        cajaCarrito.innerHTML = '<p style="color: gray;">El carrito está vacío</p>';
+        totalTexto.innerText = "0.00";
+        return;
+    }
+
+    cajaCarrito.innerHTML = "";
+    let total = 0;
+    carrito.forEach((prod, indice) => {
+        cajaCarrito.innerHTML += `
+            <div class="item-carrito" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span>${prod.nombre}</span>
+                <div>
+                    <span>$${prod.precio.toFixed(2)}</span>
+                    <button onclick="eliminarDelCarrito(${indice})" style="background:#ff4d4d; color:white; border:none; padding:2px 6px; border-radius:3px; cursor:pointer; margin-left:5px;">X</button>
+                </div>
+            </div>`;
+        total += prod.precio;
+    });
+    totalTexto.innerText = total.toFixed(2);
+}
+
+
+function eliminarDelCarrito(indice) {
+    carrito.splice(indice, 1);
+    actualizarDibujoCarrito();
+}
+
+// 5. FILTROS Y BUSQUEDA
+function filtrarCategoria(cat) {
+    paginaActual = 1;
+    const filtrados = (cat === 'Todos') ? productos : productos.filter(p => p.categoria === cat);
+    cargarCatalogo(filtrados);
+}
+function enviarPorWhatsApp() {
+    if (carrito.length === 0) {
+        alert("El carrito está vacío. ¡Agrega algunos productos!");
+        return;
+    }
+
+    let numeroTelefono = "56959754363"; // <-- Asegúrate de poner tu número aquí
+    
+    // Encabezado del mensaje
+    let mensaje = "¡Hola! Quisiera realizar el siguiente pedido en *Comercializadora NAROI*:%0A%0A";
+    mensaje += "--- *PRODUCTOS* ---%0A";
+
+    // Listado de productos
+    carrito.forEach((prod) => {
+        mensaje += `• ${prod.nombre} ($${prod.precio})%0A`;
+    });
+
+    // Total
+    const total = document.getElementById('total-pago').innerText;
+    mensaje += `%0A*Total a pagar: $${total}*%0A%0A`;
+
+    // Sección de datos del cliente para que él los rellene en WhatsApp
+    mensaje += "--- *DATOS DE ENTREGA* ---%0A";
+    mensaje += "📍 *Dirección:* %0A";
+    mensaje += "🏠 *Depto/Casa:* %0A";
+    mensaje += "🏙️ *Comuna:* %0A";
+    mensaje += "📞 *Teléfono contacto:* %0A";
+
+    // Abrir WhatsApp
+    const url = `https://wa.me/${numeroTelefono}?text=${mensaje}`;
+    window.open(url, '_blank');
+}
+
+function buscarProducto() {
+    paginaActual = 1;
+    const texto = document.getElementById('buscador').value.toLowerCase();
+    const filtrados = productos.filter(p => p.nombre.toLowerCase().includes(texto) || p.categoria.toLowerCase().includes(texto));
+    cargarCatalogo(filtrados);
+}
+
+// ARRANCAR AL CARGAR LA PAGINA
+window.onload = function() {
+    cargarCatalogo();
+};
+</script>
+
+</body>
+</html>
